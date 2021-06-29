@@ -281,7 +281,7 @@ def autoNorm(data_set):
     """    
     min_val = data_set.min(axis=0)  # 按行取最小值，例如比较第一列的所有行
     max_val = data_set.max(axis=0)
-    # 最大值和最小值的范围
+    # 最大值和最小值的差
     ranges = max_val - min_val
     norm_data_set = np.zeros(np.shape(data_set))
     # 返回data_set的行数
@@ -293,23 +293,190 @@ def autoNorm(data_set):
     return norm_data_set, ranges, min_val
 ```
 
-
-
 ##### 2.2.4 测试算法
 
+机器学习算法一个重要的工作就是评估算法的正确性，通常我们提供已有数据的90%作为训练样本来训练分类器，而使用其余的10%数据去测试分类器，检测分类器的正确率。需要注意的是10%的测试数据应该是随机选择的。
 
+这里我们使用错误率来检测分类器的性能，对于分类器来说，错误率就是分类器给出错误结果的次数除以测试数据的总数。
+
+```python
+def datingClassTest():
+    """
+        returns:
+            normDataSet: 归一化后的特征矩阵
+            ranges: 数据范围
+            minVals: 最小值
+    """
+    filename = 'datingTestSet.txt'
+    datingMat, datingLabels = file2matrix(filename)
+    hoRatio = 0.1
+
+    # 数据归一化
+    normDataSet, ranges, minVals = autoNorm(datingMat)
+    # 获取行数
+    m = normDataSet.shape[0]  # 1000
+    # 测试数据的个数
+    numTestVecs = int(m * hoRatio)  # 1000 * 0，1 即10%测试数据 100 
+    # 错误计数器
+    errorCount = 0
+    for x in range(numTestVecs):  # 0 - 99
+        # normDataSet[x,:] 一行数据即一个样本,前10%数据为测试数据
+        # normDataSet[numTestVecs:m,:] 其余90%为训练数据
+        classfierResult =classify0(normDataSet[x,:], normDataSet[numTestVecs:m,:], datingLabels[numTestVecs:m], k=4)
+        print("分类结果：%d, 真实结果: %d" %(classfierResult, datingLabels[x]))
+        if classfierResult != datingLabels[x]:
+            errorCount += 1
+    print("错误率：%.2f" % ((errorCount / float(numTestVecs)) * 100))
+```
 
 ##### 2.2.5 使用算法
 
+通过该程序海伦会在约会网站上找到某个人并输入他的信息。程序会给出她对男方喜欢程度的预测值。
 
-
-
-
-
-
-
+```python
+def classifyPerson():
+    # 输出结果
+    result_list = ['讨厌', '有些喜欢', '非常喜欢']
+    # 三维特征
+    precentTats = float(input("玩视频游戏所耗时间百分比:"))
+    ffMiles = float(input("每年获得的飞行常客里程数:"))
+    iceCream = float(input("每周消费的冰激淋公升数:"))
+    filename = 'datingTestSet.txt'
+    datingDataMat, datingLabels = file2matrix(filename)
+    # 数据归一化
+    normMat, ranges, minVals = autoNorm(datingDataMat)  # 所有列都进行归一化
+    # 生成NumPy数组,测试集
+    inArr = np.array([ffMiles, precentTats, iceCream])
+    # 归一化
+    norminArr = (inArr - minVals) / ranges
+    # 返回分类结果
+    classfierResult = classify0(norminArr, normDataSet, datingLabels, k=3)
+    print("海伦可能%s这个人" % result_list[classfierResult-1])
+```
 
 #### 2.3 示例：手写识别系统
 
+对于需要识别的数字已经使用图形处理软件，处理成具有相同的色彩和大小：宽高是32像素x32像素。尽管采用本文格式存储图像不能有效地利用内存空间，但是为了方便理解，我们将图片转换为文本格式，数字的文本格式如图所示。
 
+![KNN-6](/home/fanzone/Documents/ReadingNotes/MachineLearning/KNN-6.jpg)
+
+##### 2.3.1 准备数据
+
+这里使用sklearn模块提供的KNN算法
+
+```PYTHON
+def img2vector(filename):
+    """将32x32的二进制的图像转为1x1024的向量
+        
+        params:
+            filename: 文件名
+        returns:
+            returnVec: 返回的向量
+    """
+
+    returnVec = np.zeros((1,1024))
+    fr = open(filename)    
+    for x in range(32):  # 行
+        lineStr = fr.readline()
+        print(len(lineStr))
+        for j in range(32):  # 列
+            returnVec[0, 32*x+j] = int(lineStr[j])
+    return returnVec
+
+if __name__ == "__main__":
+    r = img2vector('trainingDigits/0_0.txt')
+    print(r)
+    print(r.shape)
+```
+
+
+
+##### 2.3.2 测试算法
+
+```python
+import os
+import numpy as np
+from KNN import classify0
+
+from sklearn.neighbors import KNeighborsClassifier as KNN
+
+def img2vector(filename):
+    """将32x32的二进制的图像转为1x1024的向量
+        
+        params:
+            filename: 文件名
+        returns:
+            returnVec: 返回的向量
+    """
+    returnVec = np.zeros((1,1024))
+    fr = open(filename)    
+    for x in range(32):  # 行
+        lineStr = fr.readline()
+        for j in range(32):  # 列
+            returnVec[0, 32*x+j] = int(lineStr[j])
+    return returnVec
+
+def handWritingClassTest():
+    # 测试集labels
+    hwLabels = []
+    # 返回trainingDigits目录下的文件名
+    trainingFileList = os.listdir('trainingDigits')
+    # 文件个数
+    m = len(trainingFileList)
+    # 初始化训练集矩阵, 一个文件为一行数据，一个样本
+    trainingMat = np.zeros((m, 1024))
+    # 从文件中解析训练集类别
+    for i in range(m):
+        fileStr = trainingFileList[i]
+        # 获得分类的数字
+        classNumber = int(fileStr.split('_')[0])
+        hwLabels.append(classNumber)  # labels
+        # 将每个文件添加到trainingMat中
+        trainingMat[i, :] = img2vector(f'trainingDigits/{fileStr}')
+    print(trainingMat)
+    neigh = KNN(n_neighbors=3, algorithm='auto')
+    # 拟合模型
+    neigh.fit(trainingMat, hwLabels)
+    # 测试数据
+    testFileList = os.listdir('testDigits')
+    # 错误检测技术
+    errorCount = 0
+    # 测试数据数量
+    mTest = len(testFileList)
+    for x in range(mTest):
+        fileStr = testFileList[x]
+        # 获得分类的数字
+        classNumber = int(fileStr.split('_')[0])
+        # 获取测试即向量用于测试。
+        vectorUnderTest = img2vector(f'testDigits/{fileStr}')
+        # 获得测试结果
+        # classfierResult = classify0(vectorUnderTest, trainingMat, hwLabels, k=3)
+        classfierResult = neigh.predict(vectorUnderTest)  # 使用sklearn模块
+        print("返回的结果为%d，真实的结果为%d" % (classfierResult, classNumber))
+        if classfierResult != classNumber:
+            errorCount += 1.0
+    print("总共错了%d个数据\n错误率为%f%%" % (errorCount, errorCount/mTest * 100))
+
+if __name__ == "__main__":
+    r = img2vector('trainingDigits/0_0.txt')
+    print(r)
+    print(r.shape)
+    handWritingClassTest()
+```
+
+**总结：**
+
+**优点**
+
+- 简单好用，容易理解，精度高，理论成熟，既可以用来做分类也可以用来做回归；
+- 可用于数值型数据和离散型数据；
+- 训练时间复杂度为O(n)；无数据输入假定（？）；
+- 对异常值不敏感（？）
+
+**缺点**
+
+- 计算复杂性高；空间复杂性高；
+- 样本不平衡问题（即有些类别的样本数量很多，而其它样本的数量很少）；
+- 一般数值很大的时候不用这个，计算量太大，可能很耗时。但是单个样本又不能太少，否则容易发生误分。
+- 最大的缺点是无法给出数据的内在含义。
 
