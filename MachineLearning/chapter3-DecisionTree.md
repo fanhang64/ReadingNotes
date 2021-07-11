@@ -6,7 +6,7 @@
 
 决策树分类过程：从根节点开始，对实例的某一特征值进行测试，根据测试结果，将实例分配到其子节点，这时，每一个子节点对应着该特征的一个取值。如此递归地对实例进行测试并分类，直至到达叶节点，最后将实例分到叶节点的类中。
 
-生成决策树常用的算法：ID3、C4.5、CART。下面用的ID3算法。
+决策树分割度量方法：信息增益（ID3）、信息增益率（C4.5）、基尼指数（CART）。下面用的ID3算法。
 
 #### 3.1 决策树构造
 
@@ -36,7 +36,7 @@
 
 **问题：什么是信息增益？**
 
-在划分数据集之后信息发生的变化称为信息增益。知道如何计算信息增益，我们就可以计算每个特征值划分数据集获得的信息增益。**信息增益最高的特征**就是最好的选择。
+在划分数据集之后信息发生的变化称为信息增益。如果知道如何计算信息增益，我们就可以计算每个特征值划分数据集获得的信息增益。**信息增益最高的 特征**就是最好的选择。
 
 **（1）香农熵**
 
@@ -50,13 +50,9 @@
 
 ![](/home/fanzone/Documents/ReadingNotes/MachineLearning/DT-04.png)
 
-其中n是分类的数目。熵越大，随机变量的不确定性越大。
+其中n是分类的数目。当熵中的概率由数据估计（特别是最大似然估计）得到时，所对应的熵为**经验熵**。
 
-当熵中的概率由数据估计（特别是最大似然估计）得到时，所对应的熵为经验熵。
-
-**问题：什么叫做数据估计？**    ？？？ 
-
-比如10个数据，一个两个类别，A和B类，其中由7个数据属于A类，则该A类的概率为十分之七，其中3个数据属于B类，则B类的概率为十分之三。浅显的解释为，概率是我们根据数据数出来的。我们定义贷款申请样本数据表中的数据为训练数据集D，则训练数据集D的经验熵为H(D)，|D|表示样本容量，及样本个数。设由K个类C<sub>k</sub> =1,2,3...k，|C<sub>k</sub>|为属于类C<sub>k</sub>的样本个数，因此经验熵可以写为：
+我们定义贷款申请样本数据表中的数据为训练数据集D，则训练数据集D的**经验熵为H(D)**，|D|表示样本容量，及样本个数。设由K个类C<sub>k</sub> =1,2,3...k，|C<sub>k</sub>|为属于类C<sub>k</sub>的样本个数，因此经验熵可以写为：
 
 ![](/home/fanzone/Documents/ReadingNotes/MachineLearning/DT-05.png)
 
@@ -130,7 +126,7 @@ if __name__ == "__main__":
 
 信息增益是相对于特征而言的，信息增益越大，特征对最终的分类结果影响也就越大，我们就应该选择对分类结果影响最大的那个特征作为我们的分类特征。
 
-**条件熵：** 条件熵H（Y|X）表示在已知随机变量X的条件下随机变量Y的不确定性。随机变量X给定条件下随机变量Y的条件熵H(Y|X)，定义为X给定条件下Y的条件概率分布的熵对X的数学期望：
+**条件熵：** 条件熵H（Y|X）表示在已知随机变量X的条件下随机变量Y的不确定性（？？？）。随机变量X给定条件下随机变量Y的条件熵H(Y|X)，定义为X给定条件下Y的条件概率分布的熵对X的数学期望：
 
 ![](/home/fanzone/Documents/ReadingNotes/MachineLearning/DT-07.jpg)
 
@@ -140,15 +136,25 @@ if __name__ == "__main__":
 
 
 
-同理当条件熵中的概率由数据估计（特别是极大似然估计）得到时，所对应的条件熵称为条件经验熵。
+同理当条件熵中的概率由数据估计（特别是极大似然估计）得到时，所对应的条件熵称为**经验条件熵**。
 
-令特征A对训练数据集D的信息增益g(D, A) 定义为集合D的经验熵H(D)与特征A给定条件下D的经验条件熵H（D|A）之差，即
+令特征A对训练数据集D的信息增益g(D, A) 定义为集合D的经验熵H(D)与特征A给定条件下D的经验条件熵H（D|A）之差，即**公式：** `信息增益 = 分割前的经验熵（信息熵） - 分割后的经验条件熵H(D|A)`。
 
 ![](/home/fanzone/Documents/ReadingNotes/MachineLearning/DT-09.jpg)
 
+**注意：**
+
+- 分割后的子节点的信息熵越小，表示分类结果约纯，信息增益就越大。
+
 **示例：**
 
-以贷款申请样本为例，令年龄这一列数据为特征A1，一共三种取值，分为青年，中年，老年。看青年的数据，有5个，所以年龄是青年的数据在训练数据集出现的概率为十五分之五，同理中年和老年的数据分别也是三分之一。现在我们只看年龄是青年的数据最终得到贷款的是五分之二（2个是，三个否），同理可得中年和老年最终得到贷款的概率分别为是五分之三，五分之四。所以信息增益为：
+以贷款申请样本为例，令年龄这一列数据为特征A1，一共三种取值，分为青年，中年，老年。
+
+此时的经验熵（即分割前）`H(D)=-9/15 * log(9/15) - 6/15 * log(6/15)`
+
+看青年，中年，老年的数据，都各有5个，共有15个数据，各占`5/15`。现在我们只看年龄是青年的数据最终得到贷款的是五分之二（2个是，三个否）。即`H(D|A1) = 1/3 * H(D1)+ 1/3 * H(D2) + 1/3 * H(D3)`
+
+所以信息增益为：
 
 ![](/home/fanzone/Documents/ReadingNotes/MachineLearning/DT-10.jpg)
 
@@ -174,7 +180,6 @@ if __name__ == "__main__":
 
 ```python
 import math
-
 def createDataSet():
     dataSet = [
         [0, 0, 0, 0, 'no'],
@@ -221,14 +226,14 @@ def splitDataSet(dataSet, axis, value):
     Args:
         dataSet: 待划分数据集
         axis: 选取的划分数据集的特征（某一列）
-        value: 需要返回的特征的值
+        value: 选取特征取为对应的值
     returns:
         retDataSet: 划分后的数据集
     """
     retDataSet = []
     for featureVec in dataSet:
         if featureVec[axis] == value:
-            reducedFeatVec = featureVec[:axis] # 选择第几个特征中值为几的所有数据子集。例如第0个特征的0的数据 splitDataSet(d, 0, 0)
+            reducedFeatVec = featureVec[:axis]  # 选择第几个特征中值为几的所有数据子集。例如第0个特征的0的数据 splitDataSet(d, 0, 0)
             reducedFeatVec.extend(featureVec[axis+1:])
             retDataSet.append(reducedFeatVec)
     return retDataSet
@@ -238,30 +243,34 @@ def chooseBestFeatureToSplit(dataSet):
     Args:
         dataSet: 信息增益最大的特征的索引值
     """
-    numFeatures = len(dataSet[0]) - 1  # 特征数量
+    numFeatures = len(dataSet[0]) - 1  # 特征数量，选取第一行，计算特征值个数
     baseEntropy = calcShannonEnt(dataSet)  # 计算香农熵
     baseInfoGain = 0.0  # 信息增益
-    bestFeature = -1
-    for i in range(numFeatures):  # 遍历所有特征
+    bestFeature = -1  # 最优特征值索引下标
+    for i in range(numFeatures):  # 遍历所有特征, 第0列为第一个特征即i=0
         featList = [data[i] for data in dataSet]
-        uniqueVals = set(featList)  # 去重
-        newEntropy = 0.0
+        uniqueVals = set(featList)  # 去重, 为某个特征的所有取值，例如第0列为[0，1,2]
+        newEntropy = 0.0  # 用于计算条件经验熵,即H(D|A)
         for value in uniqueVals:  # 计算信息增益
-            subDataSet = splitDataSet(dataSet, i, value)  # 划分子集
+            subDataSet = splitDataSet(dataSet, i, value)  # 划分子集, 第0列特征，按取值为0，1，2时候划分数据
             prob = len(subDataSet) / float(len(dataSet))  # 计算子集的概率
+
             newEntropy += prob * calcShannonEnt(subDataSet)  # 根据公式计算经验条件熵
         infoGain = baseEntropy - newEntropy  # 信息增益
         print(f'第%d个特征的增益为%.3f' % (i, infoGain))
-        if infoGain > baseInfoGain:  # 计算信息增益
+        if infoGain > baseInfoGain:  # 选择最大信息增益的索引下标
             baseInfoGain = infoGain  # 更新信息增益，找到最大的信息增益
             bestFeature = i  # 记录信息增益最大的特征的索引值
     return bestFeature  # 返回索引值
 
 if __name__ == "__main__":
     data, labels = createDataSet()
-    # x = calcShannonEnt(data)
+    x = calcShannonEnt(data)  # 计算经验熵
     # print(x)
+    # r = splitDataSet(data, 0, 1)  # 选取第0列特征值为1的数据（不包括特征值第0列）
+    # print(r)
     print('最优特征索引值:'+str(chooseBestFeatureToSplit(data)))
+
 """结果：
 第0个特征的增益为0.083
 第1个特征的增益为0.324
@@ -271,15 +280,137 @@ if __name__ == "__main__":
 """
 ```
 
+**总结：**
 
-
-
+上述工作原理是通过原始数据集，基于最好的特征划分数据集，由于特征值可能多于两个，因此可能存在大于两个分支的数据集划分。第一次划分之后，数据集被向下传递到树的分支的下一个结点。在这个结点上，我们可以再次划分数据。因此我们可以采用递归的原则处理数据集。
 
 ##### 3.1.3 递归构建决策树
 
+**构建决策树方法：** 从根节点（root node）开始，对节点计算所有可能的特征的信息增益，选择信息增益最大的特征作为节点的特征，**由该特征的不同取值建立子节点**；在对子节点递归的调用上述方法，构建决策树；直到所有特征的信息增益均很小或没有特征可以选择为止，最后得到一个决策树。
+
+继续分析开始的图表，由于特征A3（是否有房子）的信息增益最大，故选取特征A3作为根节点的特征。它将训练集D划分为两个子集D1（是）和D2（否），**由于D1只有同一类的样本点**（在最后一列是否给贷款的值都为`是`），故D1成为一个叶节点，节点的类标记为`是`。
+
+而 D2则需要特征A1（年龄），A2（有工作）和A4（信贷情况）中选择新的特征，计算各个特征的信息增益：
+
+![](/home/fanzone/Documents/ReadingNotes/MachineLearning/DT-14.jpg)
+
+故选择A2（是否有工作）作为新的子节点，由于A2有两个取值（是，否），当`是`包含3个样本，属于同一类，所以为叶子节点；当`否`包含6个节点，也属于同一类，所以也为叶子节点。从而生成一个决策树，如下：
+
+![](/home/fanzone/Documents/ReadingNotes/MachineLearning/DT-15.jpg)
 
 
 
+**使用字典存储决策树：**
+
+```python
+# 这里使用字典存储决策树
+{
+    '有房子'：{
+        0：{
+            '有工作':{
+                0: 'no',
+                1: 'yes'
+            }
+        }，
+        1： 'yes'
+    }
+}
+```
+
+**构造决策树代码实现：**
+
+```python
+import math
+import numpy as np
+import operator
+def createDataSet():
+    dataSet = [
+        [0, 0, 0, 0, 'no'],
+        [0, 0, 0, 1, 'no'],
+        [0, 1, 0, 1, 'yes'],
+        [0, 1, 1, 0, 'yes'],
+        [0, 0, 0, 0, 'no'],
+        [1, 0, 0, 0, 'no'],
+        [1, 0, 0, 1, 'no'],
+        [1, 1, 1, 1, 'yes'],
+        [1, 0, 1, 2, 'yes'],
+        [1, 0, 1, 2, 'yes'],
+        [2, 0, 1, 2, 'yes'],
+        [2, 0, 1, 1, 'yes'],
+        [2, 1, 0, 1, 'yes'],
+        [2, 1, 0, 2, 'yes'],
+        [2, 0, 0, 0, 'no'],
+    ]
+    # labels = ['不放贷', '放贷']  # 分类属性
+    labels = ['年龄', '有工作', '有自己的房子', '信贷情况']  # 特征标签（分类属性）
+    return dataSet, labels
+
+def majorityCnt(classList):
+    """统计classList中出现次数最多的元素
+    Args:
+        classList: 类标签列表
+
+    Returns:
+        sortedClassCount[0][0]: 出现次数最多的元素（类标签）
+    """
+    classCount = {}
+    for vote in classList:
+        if vote not in classCount.keys():
+            classCount[vote] = 0
+        classCount[vote] += 1
+        sortedClassCount = sorted(classCount.items(), key=operator.itemgetter(1), reverse=True)
+        return sortedClassCount[0][0]
+
+def createTree(dataSet, labels, featLabels):
+    """构造决策树
+    Args:
+        dataSet: 训练数据集
+        labels: 分类属性标签
+        featLabels: 存储选择的最优特征标签
+
+    Returns:
+        myTree: 构造的决策树
+    """
+    classList = [data[-1] for data in dataSet]  # 分类标签（是否贷款yes no）
+    if classList.count(classList[0]) == len(classList):  # 如果类别完全相同则停止继续划分 
+        return classList[0]
+    if len(dataSet[0]) == 1 or len(labels) == 0:  # 遍历玩所有特征时返回出现次数最多的类标签
+        return majorityCnt(classList)
+    bestFeat = chooseBestFeatureToSplit(dataSet)  # 选择最优特征
+    print(bestFeat)
+    print(labels)
+    bestFeatLabel = labels[bestFeat]  # 最优特征的标签
+    featLabels.append(bestFeatLabel)
+
+    myTree = {bestFeatLabel: {}}
+    del(labels[bestFeat])  # 删除已使用的特征标签
+    featValues = [data[bestFeat] for data in dataSet]  # 得到训练集中所有最优特征的属性值
+    uniqueVals = set(featValues)
+    for value in uniqueVals:  # 遍历特征，创建决策树
+        subLabels = labels[:]
+        ds = splitDataSet(dataSet, bestFeat, value)
+        myTree[bestFeatLabel][value] = createTree(ds, subLabels, featLabels)
+    return myTree
+
+if __name__ == "__main__":
+    data, labels = createDataSet()
+    x = calcShannonEnt(data)  # 计算经验熵
+    # print(x)
+    # r = splitDataSet(data, 0, 1)  # 选取第0列特征值为1的数据（不包括特征值第0列）
+    # print(r)
+    # print('最优特征索引值:'+str(chooseBestFeatureToSplit(data)))
+    featLabels = []
+    myTree = createTree(data, labels, featLabels)
+    print(myTree)
+“”“
+{'有自己的房子': {0: {'有工作': {0: 'no', 1: 'yes'}}, 1: 'yes'}}
+”“”
+```
+
+递归创建决策树时，递归有两个中止条件：
+
+- 一是：所有的类标签完全相同，则直接返回该类标签
+- 二是：使用完了所有特征，仍然不能将数据划分仅包含唯一类别的分组，即决策树构建失败，特征不够用，此时说明数据维度不够，由于第二个停止条件无法简单的返回唯一的类标签，这里挑选出现数量最多的类别作为返回值。 （？？？）
 
 #### 3.2 在Python中使用matplotlib绘制树形图
 
