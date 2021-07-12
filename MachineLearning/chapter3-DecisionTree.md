@@ -363,6 +363,7 @@ def majorityCnt(classList):
 
 def createTree(dataSet, labels, featLabels):
     """构造决策树
+
     Args:
         dataSet: 训练数据集
         labels: 分类属性标签
@@ -372,24 +373,24 @@ def createTree(dataSet, labels, featLabels):
         myTree: 构造的决策树
     """
     classList = [data[-1] for data in dataSet]  # 分类标签（是否贷款yes no）
-    if classList.count(classList[0]) == len(classList):  # 如果类别完全相同则停止继续划分 
+    if classList.count(classList[0]) == len(classList):  # 统计类别个数，如果类别个数与列表相同则停止继续划分，即结果为同一类
         return classList[0]
-    if len(dataSet[0]) == 1 or len(labels) == 0:  # 遍历玩所有特征时返回出现次数最多的类标签
+    if len(dataSet[0]) == 1 or len(labels) == 0:  # 这里如果使用完了所有特征,仍不能将数据划分仅包含唯一类别分组，即特征不够。这时遍历玩所有特征时返回出现次数最多的类标签【取值0 还是 1】返回
         return majorityCnt(classList)
-    bestFeat = chooseBestFeatureToSplit(dataSet)  # 选择最优特征
+    bestFeat = chooseBestFeatureToSplit(dataSet)  # 选择最优特征索引下标
     print(bestFeat)
     print(labels)
     bestFeatLabel = labels[bestFeat]  # 最优特征的标签
     featLabels.append(bestFeatLabel)
-
     myTree = {bestFeatLabel: {}}
     del(labels[bestFeat])  # 删除已使用的特征标签
-    featValues = [data[bestFeat] for data in dataSet]  # 得到训练集中所有最优特征的属性值
+    featValues = [data[bestFeat] for data in dataSet]  # 得到训练集中所有最优特征的属性值(取值)
     uniqueVals = set(featValues)
+    print(uniqueVals)  # {0, 1}
     for value in uniqueVals:  # 遍历特征，创建决策树
         subLabels = labels[:]
-        ds = splitDataSet(dataSet, bestFeat, value)
-        myTree[bestFeatLabel][value] = createTree(ds, subLabels, featLabels)
+        ds = splitDataSet(dataSet, bestFeat, value) # 划分数据
+        myTree[bestFeatLabel][value] = createTree(ds, subLabels, featLabels)  # 划分后数据继续执行递归
     return myTree
 
 if __name__ == "__main__":
@@ -410,11 +411,58 @@ if __name__ == "__main__":
 递归创建决策树时，递归有两个中止条件：
 
 - 一是：所有的类标签完全相同，则直接返回该类标签
-- 二是：使用完了所有特征，仍然不能将数据划分仅包含唯一类别的分组，即决策树构建失败，特征不够用，此时说明数据维度不够，由于第二个停止条件无法简单的返回唯一的类标签，这里挑选出现数量最多的类别作为返回值。 （？？？）
+- 二是：使用完了所有特征，仍然不能将数据划分仅包含唯一类别的分组，即决策树构建失败，特征不够用，此时说明数据维度不够，由于第二个停止条件无法简单的返回唯一的类标签，这里挑选出现数量最多的类别作为返回值。
 
 #### 3.2 在Python中使用matplotlib绘制树形图
 
 ##### 3.2.1 matplotlib注解
+
+下面通过`matplotlib`模块绘制决策树的树形图，其中`matplotlib`模块有一个注解工具`annotations`，可以在图形中添加文本注释，注解通常用于解释数据的内容。
+
+```python
+import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
+
+def getNumLeaves(myTree):
+    """获取决策树的叶子节点数
+
+    Args:
+        myTree: 决策树
+    returns:
+        numLeaves: 叶子节点数
+    """
+    numLeaves = 0
+    firstStr = next(iter(myTree))  # 遍历dict的key  例如a = {name:{'zs': {}, 'ls':{}}} 则next(iter(a)) => name
+    secondDict = myTree[firstStr]
+    for key in secondDict.keys():
+        if type(key) == 'dict':
+            numLeaves += getNumLeaves(secondDict[key])
+        else:
+            numLeaves += 1
+    return numLeaves
+
+def getNumDepth(myTree):
+    """ 获取决策树层数
+
+    Args:
+        myTree: 决策树
+    returns:
+        numDepth: 决策树层数
+    """
+    maxDepth = 0
+    firstStr = next(iter(myTree))
+    secondDict = myTree[firstStr]
+    for key in secondDict.keys():
+        if type(key)  == 'dict':
+            thisDepth = 1 + getNumDepth(secondDict[key])
+        else:
+            thisDepth = 1
+        if thisDepth > maxDepth:
+            maxDepth = thisDepth
+    return maxDepth
+
+
+```
 
 
 
