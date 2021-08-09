@@ -109,7 +109,7 @@ def load_datasets():
         ['my', 'dalmation', 'is', 'so', 'cut', 'I', 'love', 'him'],
         ['stop', 'posting', 'stupid', 'worthless', 'garbage'],
         ['mr', 'licks', 'ate', 'my', 'steak', 'how', 'to', 'stop', 'him'],
-        ['quit', 'buying', 'worthkless', 'dog', 'food', 'stupid']
+        ['quit', 'buying', 'worthless', 'dog', 'food', 'stupid']
     ]
     class_vec = [0,1,0,1,0,1]  # 类别标签向量，1代表侮辱类，0代表非侮辱类
     return posting_list, class_vec
@@ -157,10 +157,55 @@ if __name__ == "__main__":
     print(train_mat)
 ```
 
-`train_mat`是所有的词条向量组成的列表，它里面存放的是根据`my_vocab_list`向量化的词条向量，下面编写训练函数，使用词条向量计算概率
+`train_mat`是所有的词条向量组成的列表，它里面存放的是根据`my_vocab_list`向量化的词条向量，下面编写训练函数，通过之前的条件概率公式，对每个类别计算概率，然后比较概率的大小。
 
 ```python
+P(Ci| W) = P(Ci) * P(W|Ci) / P(W)  # 其中i表示类别，w表示一个向量，由多个值组成，一个向量中数值个数和词汇表词个数相同。
 ```
+
+**训练函数:**
+
+```python
+def trainNB0(train_mat, train_category):
+    """ 朴素贝叶斯分类器训练函数
+
+    Args:
+        train_mat : 训练文档（一条文档就是一个留言，一个list）矩阵，即set_of_words_to_vec 返回的词条向量化后的列表
+        train_category : 训练类别标签向量。
+    returns:
+        p0_vect: 非侮辱性的条件概率数组
+        p1_vect: 侮辱性的条件概率数组
+        p_abusive 文档属于侮辱类的概率
+    """
+    num_train_docs = len(train_mat)  # 统计文档的数目
+    num_words = len(train_mat[0])  # 统计每篇文档的词条数   32 
+    p_absive = sum(train_category) / float(num_train_docs)  # 计算类别为1即为侮辱类的概率P(Ci) 
+    p0_num = np.zeros(num_words)  # 构造单词出现列表
+    p1_num = np.zeros(num_words) 
+    p0_denom = 0.0  # 整个数据集单词出现的总数
+    p1_denom = 0.0 
+    for i in range(num_train_docs):  # range(6)  [0 1 0 1 0  1] 
+        if train_category[i] == 1:  # 统计侮辱类的条件概率所需的数据，即P(W0|1),P(W1|1),P(W2|1)··· 即[0,1,1,....] + [0,1,1,....] + ... ->[0,2,3,...]
+            p1_num += train_mat[i]  # 将侮辱类文件向量相加
+            p1_denom += sum(train_mat[i])  # 统计侮辱单词出现的总数
+        else:   # 统计非侮辱类的条件概率所需的数据，即P(W0|0),P(W1|0),P(W2|0)···
+            p0_num += train_mat[i]
+            p0_denom += sum(train_mat[i])
+
+    p0_vect = p0_num / p0_denom  # 统计非侮辱类数组，每个单词出现的概率，即每个单词占总单词数比率, [1,2,3,5]/90->[1/90,...]                                       
+    p1_vect = p1_num / p1_denom
+    return p0_vect, p1_vect, p_absive
+```
+
+**训练函数问题:**
+
+1. 在利用贝叶斯分类器对文档进行分类时，要计算多个概率的乘积，以获得文档属于哪个类别的概率，即计算`P(W1|1) * P(W2|1) * P(W3|1)`， 如果其中一个概率为0，则最终结果为0。
+2. 存在`下溢出`的问题，由于在python中很多非常小的数字相乘，使得最后得不到正确的结果。
+
+**解决办法：**
+
+1. 将所有词的出现次数初始化为1，将分母初始化为2。
+2. 解决下溢出问题，对乘积取自然对数log。
 
 
 
