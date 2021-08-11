@@ -206,6 +206,53 @@ def trainNB0(train_mat, train_category):
     p0_vect = p0_num / p0_denom  # 统计非侮辱类数组，每个单词出现的概率，即每个单词占总单词数比率, [1,2,3,5]/90->[1/90,...]                                       
     p1_vect = p1_num / p1_denom
     return p0_vect, p1_vect, p_absive
+
+def classify(vec_classify, p0_vect, p1_vect, p_class1):
+    """分类函数
+    Args:
+        vec_classify : 待分类向量化后一条文档（留言）   [0, 1, 1, 0, 0, 1]
+        p0_vect : 是非侮辱类每个单词概率数组
+        p1_vect : 是侮辱类每个单词概率数组
+        p_class1 : 文档属于侮辱类概率
+    """
+    p1 = reduce(lambda x,y: x*y, vec_classify*p1_vect) * p_class1
+    p0 = reduce(lambda  x,y: x*y, vec_classify*p0_vect) * (1.0 - p_class1)
+    print("p0:", p0)
+    print("p1:", p1)
+    if p1 > p0:
+        return 1
+    else:
+        return 0
+
+def testing():
+    data_sets, classes_vec = load_datasets()
+    my_vocab_list = create_vocab_list(data_sets)
+    train_mat = []
+    for data_set in data_sets:
+        r = set_of_words_to_vec(my_vocab_list, data_set)
+        train_mat.append(r)
+    p0_v,p1_v,p_ab = trainNB0(train_mat,classes_vec)
+
+    test_ = ['love', 'my', 'dalmation']
+    test_doc = np.array(set_of_words_to_vec(my_vocab_list, test_))
+    if classify(test_doc, p0_v, p1_v, p_ab) == 1:
+        print(test_, '属于侮辱类')
+    else:
+        print(test_, "属于非侮辱类")
+    test_ = ['stupid', 'garbage']
+    test_doc = set_of_words_to_vec(my_vocab_list, test_)
+    if classify(test_doc, p0_v, p1_v, p_ab) == 1:
+        print(test_, "属于侮辱类")
+    else:
+        print(test_, "属于非侮辱类")
+"""
+p0: 0.0
+p1: 0.0
+['love', 'my', 'dalmation'] 属于非侮辱类
+p0: 0.0
+p1: 0.0
+['stupid', 'garbage'] 属于非侮辱类
+"""
 ```
 
 **训练函数出现的问题:**
@@ -216,7 +263,7 @@ def trainNB0(train_mat, train_category):
 **解决办法：**
 
 1. 将所有词的出现次数初始化为1，将分母初始化为2。（拉普拉斯平滑）
-2. 解决下溢出问题，对乘积取自然对数log。
+2. 解决下溢出问题，对乘积取自然对数**log**。
 
 **示例：**
 
@@ -238,10 +285,6 @@ def trainNB0(trainMat, trainClasses):
 
 
 
-
-
-
-
 #### 4.5 示例：使用朴素贝过滤垃圾邮件
 
 
@@ -249,3 +292,4 @@ def trainNB0(trainMat, trainClasses):
 
 
 #### 4.6 示例：使用朴素贝叶斯分类器从个人广告中获取区域倾向
+
