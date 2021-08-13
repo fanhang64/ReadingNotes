@@ -432,13 +432,304 @@ if __name__ == "__main__":
 
 下面将数据集分为训练集和测试集，使用`留存交叉验证`的方法来测试朴素贝叶斯分类器的准确性。
 
+```python
+def bag_of_words_to_vec(vocab_list, input_set):
+    """根据词汇表，将input_set向量化，构建词袋模型
+
+    Args:
+        vocab_list : 词汇表
+        input_set : 输入的文档
+    """
+    return_vec = [0] * len(vocab_list)
+    for word in input_set:
+        if word in vocab_list:
+            return_vec[vocab_list.index(word)] += 1  # 与词集模型区别就是每个词出现多次就累加。
+    return return_vec
+
+def trainNB0(train_mat, train_category):  # 训练函数
+    num_train_docs = len(train_mat) 
+    num_words = len(train_mat[0])                            
+    p_abusive = sum(train_category) / float(num_train_docs)
+    p0_num = np.ones(num_words)
+    p1_num = np.ones(num_words)
+    p0_denom = 2.0
+    p1_denom = 2.0
+    for i in range(num_train_docs):
+        if train_category[i] == 1:
+            p1_num += train_mat[i]
+            p1_denom += sum(train_mat[i])
+        else:
+            p0_num += train_mat[i]
+            p0_denom += sum(train_mat[i])
+
+    p1Vect = np.log(p1_num / p1_denom)                             
+    p0Vect = np.log(p0_num / p0_denom)
+
+    return p0Vect, p1Vect, p_abusive   
+
+def classifyNB(vec_classify, p0_vect, p1_vect, p_class1):  # 分类函数
+    p1 = sum(vec_classify * p1_vect) + np.log(p_class1)
+    p0 = sum(vec_classify * p0_vect) + np.log(1.0 - p_class1)
+    if p1 > p0:
+        return 1
+    else:
+        return 0
+
+def spam_test():
+    """
+        测试分类器
+    """
+    doc_list = []  # 文档列表
+    class_list = []  # 类别列表
+    for i in range(1, 26):  # 解析文件到list
+        word_list = text_prase(open(f"spam/{i}.txt").read())
+        doc_list.append(word_list)
+        class_list.append(1)  # 1为 垃圾邮件
+        word_list = text_prase(open(f"ham/{i}.txt").read())
+        doc_list.append(word_list)
+        class_list.append(0)  # 0代表非垃圾邮件
+    my_vocab_list = create_vocab_list(doc_list)  # 创建词汇表
+    # 构建训练集（40）和测试集（10）
+    train_set_index = list(range(50))
+    test_set_index = []
+    for i in range(10):
+        rand_index = int(random.uniform(0, len(train_set_index)))  # random.uniform  均匀分布返回[a - b)的值,float类型]
+        test_set_index.append(train_set_index[rand_index])
+        del train_set_index[rand_index]  # 在训练集中移除
+    # 向量化
+    train_mat = []
+    train_classes = []
+    for doc_index in train_set_index:  # 遍历索引下标
+        v = bag_of_words_to_vec(my_vocab_list, doc_list[doc_index])
+        train_mat.append(v)
+        train_classes.append(class_list[doc_index])
+    # 训练
+    p0_vect, p1_vect, p1_classes = trainNB0(train_mat, train_classes)  # p0_vect 为[P(W0|C0), P(W1|C0), P(W2|C0), P(W3|C0), ...]
+    # 分类
+    error_count = 0
+    for doc_index in test_set_index:
+        word_vector = bag_of_words_to_vec(my_vocab_list, doc_list[doc_index])
+        if classifyNB(word_vector, p0_vect, p1_vect, p1_classes) != class_list[doc_index]:
+            error_count += 1
+            print("分类错误的测试集：",doc_list[doc_index])
+    print('错误率：%.2f%%' % (float(error_count) / len(test_set_index) * 100))
+"""
+分类错误的测试集： ['home', 'based', 'business', 'opportunity', 'knocking', 'your', 'door', 'don', 'rude', 'and', 'let', 'this', 'chance', 'you', 'can', 'earn', 'great', 'income', 'and', 'find', 'your', 'financial', 'life', 'transformed', 'learn', 'more', 'here', 'your', 'success', 'work', 'from', 'home', 'finder', 'experts']
+错误率：10.00%
+"""
+```
+
+#### 4.6 示例：使用朴素贝叶斯分类器-新浪新闻分类（sklearn）
+
+##### 4.6.1 中文分词模块jieba
+
+**安装：**
+
+```
+pip install jieba
+```
+
+**示例： 读取文件，切分中文语句**
+
+```python
+import os
+import jieba
+
+def text_parse(folder_path):
+    """文件解析
+    Args:
+        folder_path : 路径
+    """
+    folder_list = os.listdir(folder_path)
+    data_list = []
+    class_list = []
+    for folder in folder_list:
+        new_folder_path = os.path.join(folder_path, folder)
+        files = os.listdir(new_folder_path)
+
+        sample_count = 1  # 每类样本数最多100个（财经100样本，体育100样本...）
+        for file in files:
+            if sample_count > 100:
+                break
+            with open(os.path.join(new_folder_path, file)) as fp:
+                raw = fp.read()
+            word_cut = jieba.cut(raw)  # 中文分词, 返回迭代器
+            word_list = list(word_cut)
+
+            data_list.append(word_list)
+            class_list.append(folder)
+            sample_count += 1
+    print(data_list)
+    print(class_list)
+
+if __name__ == "__main__":
+    text_parse("./Sample")
+```
+
+##### 4.6.2 文本特征提取
+
+```python
+import os
+import jieba
+import random
+
+def text_parse(folder_path, test_size=0.2):
+    """文本处理
+    Args:
+        folder_path : 路径
+        test_size (float, optional): 测试集占比. Defaults to 0.2.
+    """
+    folder_list = os.listdir(folder_path)
+    data_list = []  # [[], [], [], [], ...]
+    class_list = []  # [xxx, xxx, xxx, ...]
+    for folder in folder_list:
+        new_folder_path = os.path.join(folder_path, folder)
+        files = os.listdir(new_folder_path)
+        sample_count = 1  # 每类样本数最多100个,（财经100样本，体育100样本...）
+        for file in files:
+            if sample_count > 100:
+                break
+            with open(os.path.join(new_folder_path, file)) as fp:
+                raw = fp.read()
+            word_cut = jieba.cut(raw)  # 中文分词, 返回迭代器
+            word_list = list(word_cut)
+            data_list.append(word_list)
+            class_list.append(folder)
+            sample_count += 1
+    # 划分数据集
+    data_class_list = list(zip(data_list, class_list))  #  [([1, 1, 1], 'a'), ([2, 2, 2], 'b'), ([3, 3, 3], 'c')]
+    random.shuffle(data_class_list)  # 顺序打乱
+    index = int(len(data_list) * test_size) + 1
+    train_list = data_class_list[index:]  # 训练集 [11:]
+    test_list = data_class_list[:index]  # 测试集
+    train_data_list, train_class_list = zip(*train_list)  # [[1,1,1], [2,2,2]]
+    test_data_list, test_class_list = zip(*test_list)  # ['a', 'b', 'c']
+    # 统计词频
+    all_words_dict = {}
+    for word_list in train_data_list:
+        for word in word_list:
+            if word in all_words_dict:
+                all_words_dict[word] += 1
+            else:
+                all_words_dict[word] = 1
+    # 根据频次排序
+    all_words_tuple_list = sorted(all_words_dict.items(), key=lambda x:x[1], reverse=True)  # 递减
+    all_words_list, _ = zip(*all_words_tuple_list)
+    all_words_list = list(all_words_list)  # tuple to list
+    return all_words_list, train_data_list, test_data_list, train_class_list, test_class_list
+
+def make_words_set(words_file):
+    """读取文件
+    Args:
+        words_file : 文件路径
+    Returns:
+        word_set: 文件内容去重
+    """
+    word_set = set()
+    with open(words_file) as fp:
+        for line in fp.readlines():
+            word = line.strip()
+            if len(word) > 0:
+                word_set.add(word)
+    return word_set
+
+def words_dict(all_words_list, deleteN, stopwords_set:set):
+    """ 文本特征提取
+
+    Args:
+        all_words_list : 训练集 所有的文本列表
+        deleteN : 删除词频最高的N个词
+        stopwords_set (set): 用于过滤的词集合
+    """
+    feature_words = []
+    n = 1
+    for t in range(deleteN, len(all_words_list)):
+        if n > 1000:  # feature_words 的维度不能大于1000
+            break
+        # 如果这个词不是数字，并且不在过滤列表中，并且单词长度大于1小于5，那么这个词就可以作为特征词
+        if not all_words_list[t].isdigit() and all_words_list[t] not in stopwords_set and 1 < len(all_words_list[t]) < 5:
+            feature_words.append(all_words_list[t])
+        n += 1
+    return feature_words
+
+if __name__ == "__main__":
+    folder_path = "./Sample"
+    all_words_list, train_data_list, test_data_list, train_class_list, test_class_list = text_parse(folder_path)
+    print(all_words_list)
+    stopwords_file = './stopwords_cn.txt'
+    stopwords_set = make_words_set(stopwords_file)
+    feature_words = words_dict(all_words_list, 100, stopwords_set)
+    print(feature_words)
+```
+
+##### 4.6.3 通过sklearn构建朴素贝叶斯分类器
+
+在`scikit-learn`中，一共有3个素朴贝叶斯的分类算法，分别为高斯分布的朴素贝叶斯`GaussianNB`， 多项式分布的朴素贝叶斯`MultinomialNB`，伯努利分布的朴素贝叶斯`BernoulliNB`，
+
+```python
+import matplotlib.pyplot as plt
+from sklearn.naive_bayes import MultinomialNB
+
+def text_features(train_data_list, test_data_list, feature_words):
+    """根据feature_words将文本向量化
+
+    Args:
+        train_data_list : 训练集
+        test_data_list :  测试集
+        feature_words : 特征集
+    Returns:
+        train_feature_list: 训练集向量化列表
+        test_feature_list: 测试集向量化列表
+    """
+    def _text_features(text, feature_words):
+        text_words = set(text)
+        return [1 if word in text_words else 0 for word in feature_words]
+    train_feature_list = [_text_features(text, feature_words) for text in train_data_list]
+    test_feature_list = [_text_features(text, feature_words) for text in test_data_list]
+    return train_feature_list, test_feature_list
+
+def text_classifier(train_feature_list, test_feature_list, train_class_list, test_class_list):
+    """新闻分类器
+
+    Args:
+        train_feature_list (list): 训练集向量化后的特征文本
+        test_feature_list (list): 测试集向量化的特征文本
+        train_class_list (list): 训练集分类标签
+        test_class_list (list): 测试集分类标签
+    """
+    classifer = MultinomialNB()
+    classifer = classifer.fit(train_feature_list, train_class_list)
+    test_accuracy = classifer.score(test_feature_list, test_class_list)
+    return test_accuracy
+
+if __name__ == "__main__":
+    folder_path = "./Sample"
+    all_words_list, train_data_list, test_data_list, train_class_list, test_class_list = text_parse(folder_path)
+    print(all_words_list)
+    stopwords_file = './stopwords_cn.txt'
+    stopwords_set = make_words_set(stopwords_file)
+    test_accuracy_list = []
+    deleteNs = range(0, 1000, 20)
+    for deleteN in deleteNs:
+        feature_words = words_dict(all_words_list, deleteN, stopwords_set)
+        train_feature_list, test_feature_list = text_features(train_data_list, test_data_list, feature_words)
+        test_accuracy = text_classifier(train_feature_list, test_feature_list, train_class_list, test_class_list)
+        test_accuracy_list.append(test_accuracy)
+    plt.figure()
+    plt.plot(deleteNs, test_accuracy_list)
+    plt.title("Relationship of deleteNs and test_accuracy...")
+    plt.xlabel('deleteNs')
+    plt.ylabel('test_accuracy')
+    plt.show()
+```
 
 
-#### 4.6 示例：使用朴素贝叶斯分类器从个人广告中获取区域倾向
 
+**总结：**
 
-
-
+1. 在训练朴素贝叶斯分类器之前，需要处理训练集。
+2. 要根据提取的分类特征将文本向量化，才能训练素朴贝叶斯分类器。
+3. 拉普拉斯平滑对于改善贝叶斯分类器的分类有积极的作用。
 
 参考：
 
