@@ -28,11 +28,11 @@
 
 类似的函数也有类似的性质（可以输出0或1），在数学上，更容易处理，这就是sigmoid函数，公式如下：
 
-![image-20211003133641856](/home/fanzone/.config/Typora/typora-user-images/image-20211003133641856.png)
+![image-20211003133641856](https://gitee.com/fanhang64/my_images/raw/master/2021/image-20211003133641856.png)
 
 下图给出了sigmoid函数在不同坐标尺度下的两条曲线图。当x为0.5时，sigmoid函数值为0.5。随着x的增大，对应的sigmoid也随之逼近1；随着x的减小，sigmoid值也将逼近于0。如果横坐标足够大，则sigmoid函数看起来像一个阶跃函数。
 
-<img src="/home/fanzone/.config/Typora/typora-user-images/image-20211003133912082.png" alt="image-20211003133912082" style="zoom:50%;" />
+<img src="https://gitee.com/fanhang64/my_images/raw/master/2021/image-20211003133912082.png" alt="image-20211003133912082" style="zoom:50%;" />
 
 因此，为了实现logistic回归分类器，我们可以在每个特征上乘以一个**回归系数**，然后将所有的结果值相加，将这个总和带入sigmoid函数中，进而得到一个范围在0-1之间的数值。
 
@@ -184,7 +184,7 @@ if __name__ == "__main__":
     plot_data_set()
 ```
 
-<img src="/home/fanzone/.config/Typora/typora-user-images/image-20211003173630301.png" alt="image-20211003173630301" style="zoom:50%;" />
+<img src="https://gitee.com/fanhang64/my_images/raw/master/2021/image-20211003173630301.png" alt="image-20211003173630301" style="zoom:50%;" />
 
 从上图可以看出，假设sigmoid函数的输入记为z，那么`z=w0x0+w1x1+w2x2`，即可将数据分隔割开，其中，x0为全是1的向量，x1位数据集的第一列数据，x2为数据集的第二列数据。
 
