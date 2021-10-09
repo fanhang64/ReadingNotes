@@ -110,21 +110,49 @@ jupyter notebook
 
 ![image-20211009171216653.png](https://i.loli.net/2021/10/09/ZQ8L57oC1RcWEqD.png)
 
-可见
+可见，对向量的第i个分量的求导结果就等于向量**a**的第i个分量。最后所有求导结果的分量组成的是一个n维向量，其实就是向量**a**，也就是
 
+![image-20211009222034974](https://gitee.com/fanhang64/my_images/raw/master/2021/image-20211009222034974.png)
 
+同理可得到
 
+![image-20211009222107160](https://gitee.com/fanhang64/my_images/raw/master/2021/image-20211009222107160.png)
 
+给一个测试，看能不能推导出：
+
+![image-20211009222340775](https://gitee.com/fanhang64/my_images/raw/master/2021/image-20211009222340775.png)
+
+其中，x<sup>T</sup>x 为`x1^2 + x2^2 + x3^2 + x4^2 + ... + xn^2`，第i项的求偏导为2x<sub>i</sub>，从而n个元素组成向量为**2x**。
 
 ##### 2） 标量对向量求导的一些基本法则
 
+1) 常数对向量的求导结果为0
 
+2) 线性法则：若f，g都是实值函数，c1和c2为常数，则
 
+   ![image-20211009223830575](https://gitee.com/fanhang64/my_images/raw/master/2021/image-20211009223830575.png)
 
+3) 乘法法则：如果f和g都是实战函数，则
+
+   ![image-20211009223939881](https://gitee.com/fanhang64/my_images/raw/master/2021/image-20211009223939881.png)
+
+   如果不是实值函数，则不能使用乘法法则。
+
+4) 除法法则：如果f，g都是实值函数，且g(x) ≠ 0，则：
+
+   ![image-20211009224120360](https://gitee.com/fanhang64/my_images/raw/master/2021/image-20211009224120360.png)
 
 
 
 ##### 3）用定义法求解标量对矩阵求导
+
+标量对矩阵求导和标量对向量求导类似，只是结果是一个和自变量同型的矩阵。
+
+例如：y=**a<sup>T</sup>Xb**，求解**∂a<sup>T</sup>Xb / ∂X**，其中，**a**是m维向量，**b**是n维向量，**X**是mxn的矩阵。
+
+对矩阵**X**任意一个位置的X<sub>i</sub><sub>j</sub>求导，如下：
+
+
 
 
 
