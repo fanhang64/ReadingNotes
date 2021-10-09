@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "dive-into-deep-learning"
+version = "0.1.0"
+description = ""
+authors = ["fanhang64 <fanhang64@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+jupyter = "^1.0.0"
+d2l = "^0.17.0"
+torch = "^1.9.1"
+torchvision = "^0.10.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
