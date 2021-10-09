@@ -78,7 +78,7 @@ jupyter notebook
 
 如果是按分母布局，则求导的结果矩阵的**第一维度会以分母**为准，即结果是一个n×m的矩阵，如下：
 
-![image-20211009164004744](C:\Users\fanzone\AppData\Roaming\Typora\typora-user-images\image-20211009164004744.png)
+![image.png](https://i.loli.net/2021/10/09/LGe7oiwfthZcNku.png)
 
 上边这个**按分母布局的向量对向量求导的结果矩阵**，我们一般叫做**梯度矩阵**。
 
@@ -86,7 +86,7 @@ jupyter notebook
 
 具体总结如下：
 
-![image-20211009164442784](C:\Users\fanzone\AppData\Roaming\Typora\typora-user-images\image-20211009164442784.png)
+![image-20211009164442784.png](https://i.loli.net/2021/10/09/qAIpKmgbBhxfVNv.png)
 
 
 
@@ -102,13 +102,13 @@ jupyter notebook
 
 那么我们可以将实值函数对向量的每一个分量来求导，最后找到规律，得到求导的结果向量。
 
-![image-20211009172258785](C:\Users\fanzone\AppData\Roaming\Typora\typora-user-images\image-20211009172258785.png)
+![image-20211009172258785.png](https://i.loli.net/2021/10/09/B3NcY1bHCqw9mlJ.png)
 
 首先我们来看一个简单的例子：y=a<sup>T</sup>x，求解∂a<sup>T</sup>x / ∂x。
 
 根据定义，我们先对**x**的第i个分量进行求导，这是一个**标量对标量的求导**，如下：
 
-![image-20211009171216653](C:\Users\fanzone\AppData\Roaming\Typora\typora-user-images\image-20211009171216653.png)
+![image-20211009171216653.png](https://i.loli.net/2021/10/09/ZQ8L57oC1RcWEqD.png)
 
 可见
 
