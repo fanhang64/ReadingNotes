@@ -152,15 +152,11 @@ jupyter notebook
 
 对矩阵**X**任意一个位置的X<sub>i</sub><sub>j</sub>求导，如下：
 
+![image-20211010105651114](C:\Users\fanzone\AppData\Roaming\Typora\typora-user-images\image-20211010105651114.png)
 
+　　即求导结果在(i,j)位置的求导结果是a向量第i个分量和b第j个分量的乘积，将所有的位置的求导结果排列成一个m×n的矩阵，即为ab<sup>T</sup>,这样最后的求导结果为：
 
-
-
-
-
-##### 4） 用定义法求解向量对向量求导
-
-
+![image-20211010105847348](C:\Users\fanzone\AppData\Roaming\Typora\typora-user-images\image-20211010105847348.png)
 
 
 
