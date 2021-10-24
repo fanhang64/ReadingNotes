@@ -27,7 +27,7 @@ K-近邻算法采用**测量不同特征值之间的距离**进行分类。
 
 举个简单的例子，我们可以使用k-近邻算法分类一个电影是爱情片还是动作片。
 
-![KNN-1](/home/fanzone/Documents/ReadingNotes/MachineLearning/KNN-1.png)
+![KNN-1](https://gitee.com/fanhang64/my_images/raw/master/2021/KNN-1.png)
 
 如图是我们已有的数据集合，也就是训练样本集，这个数据集有两个特征，打斗镜头和接吻镜头，我们也知道每个电影的所属类型，即分类标签。以我们的经验，接吻镜头多，是爱情片，打斗镜头多是动作片。现在我给你一部电影的打斗镜头和接吻镜头，不告诉你电影类型，你能够根据我给的信息来判断是什么类型的电影。KNN算法也可以像我们人一样做到这点。
 
@@ -35,11 +35,11 @@ K-近邻算法采用**测量不同特征值之间的距离**进行分类。
 
 KNN算法根据特征比较，然后提取样本集中特征最相似数据的分类标签。如下如图
 
-![KNN-2](/home/fanzone/Documents/ReadingNotes/MachineLearning/KNN-2.jpg)
+![KNN-2](https://gitee.com/fanhang64/my_images/raw/master/2021/KNN-2.jpg)
 
 我们可以从散点图大致推断，这个红点标记可能属于动作片，因为距离那个动作片更近，KNN算法使用距离度量来进行判断。这个电影分类有两个特征值，也就是2维实数的向量空间，可以使用中学学到的两点间距离公式。
 
-![KNN-3](/home/fanzone/Documents/ReadingNotes/MachineLearning/KNN-3.jpg)
+![KNN-3](https://gitee.com/fanhang64/my_images/raw/master/2021/KNN-3.jpg)
 
 通过计算，我们可以得到如下的结果。
 
@@ -145,7 +145,7 @@ KNN算法分类器并不会得到百分百正确的结果，我们可以使用�
 def file2matrix(filename):
     """
         params:
-            filename: 文件名
+            filename: 文件名KNN-3
         retruns:
             returnMat: 特征矩阵
             classLabelVector: 分类label向量
@@ -249,11 +249,11 @@ def show_datas(datingDataMat, datingLabels):
 
 下表给出了四组样本，如果想要计算样本3和样本4 的距离，通过使用欧式距离公式计算：
 
-![KNN-5](/home/fanzone/Documents/ReadingNotes/MachineLearning/KNN-5.jpg)
+![KNN-5](https://gitee.com/fanhang64/my_images/raw/master/2021/KNN-5.jpg)
 
 计算方法如下图：
 
-![KNN-4](/home/fanzone/Documents/ReadingNotes/MachineLearning/KNN-4.jpg)
+![KNN-4](https://gitee.com/fanhang64/my_images/raw/master/2021/KNN-4.jpg)
 
 我们可以发现数值相差较大的属性对计算结果影响较大，也就是说每年飞行里程数多结果影响远大于其他两个特征，而产生这种现象的唯一原因，仅仅是因为飞行常客里程数远大于其他特征值。但海伦认为这三种特征是同等重要的，因此作为三个等权重的特征之一，飞行常客里程数并不应该如此严重地影响到计算结果。
 
@@ -358,7 +358,7 @@ def classifyPerson():
 
 对于需要识别的数字已经使用图形处理软件，处理成具有相同的色彩和大小：宽高是32像素x32像素。尽管采用本文格式存储图像不能有效地利用内存空间，但是为了方便理解，我们将图片转换为文本格式，数字的文本格式如图所示。
 
-![KNN-6](/home/fanzone/Documents/ReadingNotes/MachineLearning/KNN-6.jpg)
+![KNN-6](https://gitee.com/fanhang64/my_images/raw/master/2021/KNN-6.jpg)
 
 ##### 2.3.1 准备数据
 
