@@ -10,6 +10,7 @@ jupyter = "^1.0.0"
 d2l = "^0.17.0"
 torch = "^1.9.1"
 torchvision = "^0.10.1"
+jupyter-contrib-nbextensions = "^0.5.1"
 
 [tool.poetry.dev-dependencies]
 
