@@ -158,13 +158,357 @@ softmax回归对样本 `i` 分类的矢量计算表达式为
 
 ## 图像分类数据集（如何读取多类分类问题数据集）
 
+**示例：**
+
+```python
+%matplotlib inline
+
+import torch
+import torchvision
+import matplotlib.pyplot as plt
+
+from torch.utils import data
+from torchvision import transforms
+
+from d2l import torch as d2l
+
+from IPython import display
+
+d2l.use_svg_display()  # svg 显示图片
 
 
 
+# 通过ToTensor() Convert a ``PIL Image`` or ``numpy.ndarray`` to tensor 将图像数据从PIL类型转换到32位浮点数类型
+# 并除以255，使得像素数值都在0和1之间
+
+trans = transforms.ToTensor()
+
+# train = True 下载的是训练数据集
+# transform = trans 下载下来图片转为tensor。默认为PIL.Image类型
+# download = True 从网络下载
+mnist_train = torchvision.datasets.FashionMNIST(root='../data', train=True, transform=trans, download=True)
+
+
+# 测试集，不用于训练，只⽤于评估模型性能
+mnist_test = torchvision.datasets.FashionMNIST(root='../data', train=False, transform=trans, download=True)
+
+print(len(mnist_train))
+print(len(mnist_test))
+
+
+
+def get_fashion_minist_labels(labels):
+    """返回fashion mnish 数据集的文本标签"""
+    
+    text_labels = [
+        't-shirt', 'trouser', 'pullover', 'dress', 'coat', 'sandal', 'shirt', 'sneakers',
+        'bag', 'ankle boot'
+    ]
+    return [text_labels[int(i)] for i in labels ]
+
+
+def show_images(imgs, num_rows, num_cols, titles=None, scale=1.5):
+    """使用matplotlib 绘制 plot a list of images"""
+    
+    figsize = (num_cols * scale, num_rows * scale)
+    _, axes = d2l.plt.subplots(num_rows, num_cols, figsize=figsize)
+    
+    axes = axes.flatten()
+    for i, (ax, img) in enumerate(zip(axes, imgs)):
+        if torch.is_tensor(img):
+            # 图片张量
+            ax.imshow(img.numpy())
+        else:
+            # PIL图片
+            ax.imshow(img)
+        ax.axes.get_xaxis().set_visible(False)  # 隐藏坐标轴
+        ax.axes.get_yaxis().set_visible(False)
+        if titles:
+            ax.set_title(titles[i])
+    return axes
+
+
+X, y = next(iter(data.DataLoader(mnist_train, batch_size=18)))  # 大小为18的固定样本
+print(X.shape)
+print(y.shape)
+print(y)
+
+show_images(X.reshape(18,28,28), 2, 9, titles=get_fashion_minist_labels(y))
+
+
+
+batch_size = 256
+def get_dataloader_workers():
+    """使用4个进程来读取数据"""
+    
+    return 4
+
+train_iter = data.DataLoader(mnist_train, batch_size, shuffle=True, num_workers=get_dataloader_workers())
+
+timer = d2l.Timer()
+
+for X, y in train_iter:
+    continue
+
+print(f'{timer.stop():.2f} second')
+
+
+def load_data_fashion_mnist(batch_size, resize=None):
+    """下载 Fashion-MNIST 数据集 ，然后加载到内存"""
+    
+    trans = [transforms.ToTensor()]
+    if resize:
+        trans.insert(0, transforms.Resize(resize))  # resize 用于调整图像的大小。将图片变得更大
+    trans = transforms.Compose(trans)
+    
+    mnist_train = torchvision.datasets.FashionMNIST(root='../data', train=True, transform=trans, download=True)
+
+    mnist_test = torchvision.datasets.FashionMNIST(root='../data', train=False, transform=trans, download=True)
+    
+    return (data.DataLoader(mnist_train, batch_size, shuffle=True, num_workers=get_dataloader_workers()),
+           data.DataLoader(mnist_test, batch_size, shuffle=True, num_workers=get_dataloader_workers())
+           )
+
+```
 
 
 
 ## Softmax实现
+
+**示例：**
+
+```python
+import torch
+
+from d2l import torch as d2l
+
+batch_size = 256
+
+train_iter, test_iter = load_data_fashion_mnist(batch_size)
+
+
+# 定义W和b
+num_inputs = 784  # 对28*28 的图片展平，将它们视为长度为28 * 28 = 784的向量
+num_outputs = 10  # 因为我们数据集有10个类别，所以网络输出维度为10
+
+# 图片为长28，宽28
+# 对于softmax来说，输入需要为一向量
+# 因为我们的数据集有10个类别，所以⽹络输出维度为10。因此，权重将构成⼀个784 x 10的矩阵，偏置将构成⼀个1 x 10的⾏向量。与线性回归⼀样，我们将使
+# ⽤正态分布初始化我们的权重W，偏置初始化为0。
+W = torch.normal(0, 0.01, size=(num_inputs, num_outputs), requires_grad=True)
+b = torch.zeros(num_outputs, requires_grad=True)
+print(W, b)
+
+
+# 给定矩阵X，对所有元素求和
+X = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+print(X)
+print(X.sum(0, keepdim=True))  # keepdim 为2维
+print(X.sum(1, keepdim=True))  # 2维
+
+
+# softmax实现
+def softmax(x):
+    X_exp = torch.exp(x)
+    partition = X_exp.sum(1, keepdim=True)
+    return X_exp / partition
+
+
+# 元整softmax运算
+X = torch.normal(0, 1, size=(2,5))
+print('X: ', X)
+X_prob = softmax(X)
+X_prob, X_prob.sum(1)
+
+
+# 定义模型
+def net(X):
+    # print(X.shape, "...net...")
+    return softmax(torch.matmul(X.reshape((-1, W.shape[0])), W) + b)
+
+# 定义损失函数
+
+y = torch.tensor([0, 2])
+
+# y_hat 为两个样本，3个类别的概率
+y_hat = torch.tensor([[0.1, 0.3, 0.6], [0.3, 0.2, 0.5]])
+
+# 拿出0号样本第0个类别的概率。 拿出第1号样本第2个类别的概率。
+y_hat[[0, 1], y]
+
+# 实现交叉熵函数
+def cross_entropy(y_hat, y):
+    # print(y_hat)
+    # print(y)
+    return -torch.log(y_hat[range(len(y_hat)), y])  # ? 为啥取一段
+
+cross_entropy(y_hat, y)
+
+
+# 定义准确率函数
+def accuracy(y_hat, y):
+    """计算预测正确的数量"""
+    
+    # 判断是否为矩阵
+    if len(y_hat.shape) > 1 and y_hat.shape[1] > 1:
+        
+        # 获取每行中的最大元素的下标， 为预测类别
+        y_hat = y_hat.argmax(axis=1)
+    cmp = y_hat.type(y.dtype) == y
+    return float(cmp.type(y.dtype).sum())
+
+accuracy(y_hat, y) / len(y)
+
+
+
+# 评估准确率
+def evaluate_accuracy(net, data_iter):
+    """计算在制定数据集上模型的精度"""
+    
+    if isinstance(net, torch.nn.Module):
+        net.eval()  # 将模型设置为评估模式。 不要计算梯度了，
+
+    metric = Accumulator(2)  # 正确预测数，预测总数
+    for X, y in data_iter:
+        metric.add(accuracy(net(X), y), y.numel())  # 准确率， 样本数
+    # print(metric.data)
+    return metric[0] / metric[1]  # 分类正确的样本数 / 总样本数
+
+
+# 累加器
+class Accumulator:
+    """n个变量上累加"""
+    
+    def __init__(self, n):
+        self.data = [0.0] * n
+    
+    def add(self, *args):
+        # print(args, ".....accumulator ....")
+        self.data = [a + float(b) for a, b in zip(self.data, args)]
+    
+    def reset(self):
+        self.data = [0.0] * len(self.data)
+    
+    def __getitem__(self, idx):
+        return self.data[idx]
+
+evaluate_accuracy(net, test_iter)
+
+
+# 模型训练
+def train_epoch_ch3(net, train_iter, loss, updater):  # ch3为第三章
+    """训练模型一个迭代周期"""
+    
+    if isinstance(net, torch.nn.Module):
+        net.train()  # 将模型设置为训练模式。 要计算梯度
+    
+    # 训练损失总和，训练准确度总和，样本数
+    metric = Accumulator(3)
+    for X, y in train_iter:
+        # 计算梯度，并更新参数
+        y_hat = net(X)
+        l = loss(y_hat, y)
+        
+        if isinstance(updater, torch.optim.Optimizer):
+            # 使用Pytorch内置的优化器和损失函数
+            updater.zero_grad()
+            l.backward()  # 计算梯度
+            updater.step()  # update 参数
+            metric.add(float(l) * len(y), accuracy(y_hat, y), y.size().numel())
+        else:
+            # 使用自己实现的优化器和损失函数
+            l.sum().backward()  # 求和，算梯度
+            updater(X.shape[0])
+            metric.add(float(l.sum()), accuracy(y_hat, y), y.numel())
+    
+    # 返回训练损失和训练准确率
+    return metric[0] / metric[2], metric[1] / metric[2]
+    
+ 
+def train_ch3(net, train_iter, test_iter, loss, num_epochs, updater):
+    animator = Animator(xlabel='epoch', xlim=[1, num_epochs], ylim=[0.3, 0.9], legend=['train loss', 'train acc', 'test acc'])
+    
+    for epoch in range(num_epochs):
+        train_metrics = train_epoch_ch3(net, train_iter, loss, updater)
+        test_acc = evaluate_accuracy(net, test_iter)
+        animator.add(epoch + 1, train_metrics + (test_acc, ))
+    
+    train_loss, train_acc = train_metrics
+    
+    assert train_loss < 0.5, train_loss
+    assert train_acc <= 1 and train_acc > 0.7, train_acc
+    assert test_acc <= 1 and test_acc > 0.7, test_acc
+
+# 定义Aminator，绘制图像
+class Animator:
+    """在动画中绘制数据"""
+    
+    def __init__(self, xlabel=None, ylabel=None, legend=None, xlim=None, ylim=None,\
+                 xscale='linear', yscale='linear', fmts=('-', 'm--', 'g-', 'r:'),\
+                 nrows=1, ncols=1, index=1, figsize=(3.5, 3.5)):
+        # 增量的绘制多条线
+        if legend is None:
+            legend = []
+        d2l.use_svg_display()
+        
+        print(nrows, ncols)
+        self.fig = plt.figure(figsize=figsize)
+        self.axes = plt.subplot(nrows, ncols, 1)
+        
+        if nrows * ncols == 1:
+            self.axes = [self.axes, ]
+        self.config_axes = lambda: d2l.set_axes(
+            self.axes[0], xlabel, ylabel, xlim, ylim, xscale, yscale, legend)
+        self.X, self.Y, self.fmts = None, None, fmts
+    
+    def add(self, x, y):
+        # 向图表中添加多个数据点
+        if not hasattr(y, "__len__"):
+            y = [y]
+        n = len(y)
+        if not hasattr(x, "__len__"):
+            x = [x] * n
+        if not self.X:
+            self.X = [[] for _ in range(n)]
+        if not self.Y:
+            self.Y = [[] for _ in range(n)]
+        for i, (a, b) in enumerate(zip(x, y)):
+            if a is not None and b is not None:
+                self.X[i].append(a)
+                self.Y[i].append(b)
+        self.axes[0].cla()
+        for x, y, fmt in zip(self.X, self.Y, self.fmts):
+            self.axes[0].plot(x, y, fmt)
+        self.config_axes()
+        display.display(self.fig)
+        display.clear_output(wait=True)        
+
+
+lr = 0.1  # 学习率
+
+def updater(batch_size):
+    return d2l.sgd([W,b], lr, batch_size)
+
+num_epochs = 10
+train_ch3(net, train_iter, test_iter, cross_entropy, num_epochs, updater)
+
+# 预测
+def predict_ch3(net, test_iter, n=6):
+    """预测模型"""
+    
+    for X, y in test_iter:
+        break
+    trues = get_fashion_minist_labels(y)
+    preds = get_fashion_minist_labels(net(X).argmax(axis=1))
+    
+    titles = [true + "\n" + pred for true, pred in zip(trues, preds)]
+    
+    show_images(X[0:n].reshape((n, 28, 28)), 1, n, titles=titles[0:n])
+
+predict_ch3(net, test_iter, n=7)
+```
+
+
 
 
 
